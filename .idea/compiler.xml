@@ -23,10 +23,12 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="ApartmentsDatabase" />
+        <module name="WorkWithSQL" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="ApartmentsDatabase" target="1.8" />
+      <module name="WorkWithSQL" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
