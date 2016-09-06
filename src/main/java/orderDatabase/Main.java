@@ -15,7 +15,7 @@ public class Main {
                 connection = DriverManager.getConnection(
                         res.getString("db.order.url"), res.getString("db.user"), res.getString("db.password"));
                 initDB();
-                System.out.println("\nMake an order:");
+
                 Statement statement = connection.createStatement();
                 statement.execute("DROP TABLE IF EXISTS Orders");
                 statement.execute("CREATE TABLE Orders " +
@@ -25,33 +25,29 @@ public class Main {
                         "quantity INT (3)," +
                         "price INT (4))");
 
-                PreparedStatement psClients = connection.prepareStatement("INSERT INTO Orders" +
-                        "(client, product, quantity, price) VALUES (?,?,?,?)");
-                PreparedStatement ps = connection.prepareStatement("SELECT * FROM Clients");
-                ResultSet rs = ps.executeQuery();
+                while (true) {
+                    System.out.println("Choose: ");
+                    System.out.println("1: Make an order");
+                    System.out.println("2: Add client");
+                    System.out.println("or else for EXIT");
+                    System.out.print("->");
 
-                while (rs.next()) {
-                    if (rs.getInt("id") == 2) {
-                        psClients.setString(1, rs.getString("name"));
+                    String point = sc.nextLine();
+                    if (!point.isEmpty()) {
+                        int i = Integer.parseInt(point);
+
+                        switch (i) {
+                            case 1:
+                                makeOrder(sc);
+                                break;
+                            case 2:
+                                addClient(sc);
+                                break;
+                            default:
+                                return;
+                        }
                     }
                 }
-
-                ps = connection.prepareStatement("SELECT * FROM Goods");
-                rs = ps.executeQuery();
-
-                while (rs.next()) {
-                    if (rs.getInt("id") == 1) {
-                        psClients.setString(2, rs.getString("product"));
-                        psClients.setInt(3, 3);
-                        psClients.setInt(4, rs.getInt("price") * 3);
-                    }
-                }
-
-                psClients.executeUpdate();
-
-                PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Orders");
-                rs = preparedStatement.executeQuery();
-                resultSet(rs);
             }
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -64,6 +60,63 @@ public class Main {
                 }
             }
         }
+    }
+
+    private static void addClient(Scanner sc) throws SQLException {
+        System.out.println("Add client:");
+        System.out.println("Enter name of client:");
+        String newName = sc.nextLine();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO Clients " +
+                "(name) VALUES (?)")) {
+            preparedStatement.setString(1, newName);
+            preparedStatement.executeUpdate();
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Clients");
+             ResultSet rs = preparedStatement.executeQuery()) {
+
+            resultSet(rs);
+        }
+    }
+
+
+    private static void makeOrder(Scanner sc) throws SQLException {
+        System.out.println("\nMake an order:");
+        System.out.println("Enter id of the name client:");
+        int id = Integer.parseInt(sc.nextLine());
+
+        PreparedStatement psClients = connection.prepareStatement("INSERT INTO Orders" +
+                "(client, product, quantity, price) VALUES (?,?,?,?)");
+        PreparedStatement ps = connection.prepareStatement("SELECT * FROM Clients");
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            if (rs.getInt("id") == id) {
+                psClients.setString(1, rs.getString("name"));
+            }
+        }
+
+        ps = connection.prepareStatement("SELECT * FROM Goods");
+        rs = ps.executeQuery();
+
+        System.out.println("Enter id of the product:");
+        id = Integer.parseInt(sc.nextLine());
+        System.out.println("Enter id of the product:");
+        int quantity = Integer.parseInt(sc.nextLine());
+        while (rs.next()) {
+            if (rs.getInt("id") == id) {
+                psClients.setString(2, rs.getString("product"));
+                psClients.setInt(3, quantity);
+                psClients.setInt(4, rs.getInt("price") * quantity);
+            }
+        }
+
+        psClients.executeUpdate();
+
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM Orders");
+        rs = preparedStatement.executeQuery();
+        resultSet(rs);
     }
 
 
